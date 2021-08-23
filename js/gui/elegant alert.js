@@ -3,7 +3,7 @@
 // @name:zh-CN			优雅的 alert()库，基于Evan Tseng修改，权利归原作者所有，作者链接https://greasyfork.org/zh-CN/scripts/391736-elegant-alert
 // @namespace			https://greasyfork.org/zh-TW/users/393133-evan-tseng
 // @author				Evan Tseng
-// @version				1.07
+// @version				1.08
 // @include				*://*
 // @run-at				document-start
 // @grant				none
@@ -42,7 +42,7 @@
 			document.querySelector('head').appendChild(cssStyle);
 
 			alertWrap = document.createElement('div');
-			alertWrap.setAttribute("class", "elegantAlertBoxWrapper");
+            alertWrap.className = "elegantAlertBoxWrapper";
 			document.body.appendChild(alertWrap);
 		}
 
@@ -52,7 +52,7 @@
 				alBox = document.createElement('div');
 			alertWrap.appendChild(alBox);
 			alBox.innerHTML = '<div class="eaBar"></div>' + text;
-			alBox.setAttribute("class", "pop");
+            alBox.className = 'pop';
 			alBox.onclick = function(){
 				let tmp = document.createElement('textArea');
 				tmp.value = text;
@@ -67,7 +67,7 @@
 		this.show = function(){
 			var box = this;
 			setTimeout(function(){
-				box.elm.setAttribute("class", "eaNormal");
+                box.elm.className = "eaNormal";
 				setTimeout(function(){
 					if(box.exist)	box.close();
 				}, duration);
@@ -75,7 +75,7 @@
 		};
 		this.close = function(){
 			var box = this;
-			box.elm.setAttribute("class", "eaClose");
+            box.elm.className = 'eaClose';
 			setTimeout(function(){
 				if(box.exist) {
 					box.elm.remove();
