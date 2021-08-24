@@ -67,7 +67,7 @@
 		this.show = function(){
 			var box = this;
 			setTimeout(function(){
-                box.elm.className = "eaNormal";
+                box.exist && (box.elm.className = "eaNormal");
 				setTimeout(function(){
 					if(box.exist)	box.close();
 				}, duration);
@@ -75,7 +75,7 @@
 		};
 		this.close = function(){
 			var box = this;
-            box.elm.className = 'eaClose';
+            box.exist && (box.elm.className = 'eaClose');
 			setTimeout(function(){
 				if(box.exist) {
 					box.elm.remove();
