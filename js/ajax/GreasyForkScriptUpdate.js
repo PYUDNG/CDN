@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         GreasyForkScriptUpdate
 // @namespace    GreasyForkScriptUpdate
-// @version      0.2
+// @version      0.3
 // @description  Check update for Greasyfork userscript
 // @author       PY-DNG
 // @include      http*://*/*
@@ -14,6 +14,7 @@
 	'use strict';
 
 	// Accessable in Global_Scope
+	typeof(unsafeWindow) !== 'object' && (window.unsafeWindow = window);
 	unsafeWindow.GreasyForkUpdater = GreasyForkUpdater;
 
 	// Use 'new' keyword
