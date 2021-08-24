@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         GreasyForkScriptUpdate
 // @namespace    GreasyForkScriptUpdate
-// @version      0.1
+// @version      0.2
 // @description  Check update for Greasyfork userscript
 // @author       PY-DNG
 // @include      http*://*/*
@@ -95,13 +95,13 @@
 		}
 
 		// Check if there's new version of the script on GreasyFork using scriptID, current version text
-		// You'll get metaData object as the first argument in your callback function
+		// You'll get update(bool), updateurl(string), metaData(object) as the first, second and third argument in your callback function
 		GFU.checkUpdate = function(scriptID, curver, callback, args=[]) {
 			if (!scriptID) {return false;};
 			GFU.getMetaData(scriptID, function(metaData) {
-				if (GFU.versionNewer(metaData.version, curver)) {
-					callback && callback.apply(null, [metaData].concat(args));
-				}
+				const update = GFU.versionNewer(metaData.version, curver);
+				const updateurl = 'https://greasyfork.org/scripts/{SID}/code/script.user.js'.replace('{SID}', String(scriptID));
+				callback && callback.apply(null, [update, updateurl, metaData].concat(args));
 			})
 		}
 
