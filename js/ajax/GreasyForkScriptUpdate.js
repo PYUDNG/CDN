@@ -1,0 +1,116 @@
+/* eslint-disable no-multi-spaces */
+// ==UserScript==
+// @name         GreasyForkScriptUpdate
+// @namespace    GreasyForkScriptUpdate
+// @version      0.1
+// @description  Check update for Greasyfork userscript
+// @author       PY-DNG
+// @include      http*://*/*
+// @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
+// @grant        GM_xmlhttpRequest
+// @grant        unsafeWindow
+// ==/UserScript==
+(function () {
+	'use strict';
+
+	// Accessable in Global_Scope
+	unsafeWindow.GreasyForkUpdater = GreasyForkUpdater;
+
+	// Use 'new' keyword
+	function GreasyForkUpdater() {
+		const GFU = this;
+
+		// Parse '// ==UserScript==\n...\n// ==/UserScript==' to {name: '', namespace: '', version: '', ...}
+		// Returns metaData object directly
+		GFU.parseMetaData = function(metaText) {
+			const metaData = {};
+			const lines = metaText.split('\n');
+			const edgeMatcher     = /==\/?UserScript==/i;
+			const keyValueMatcher = /^\/\/ *@([^@ ]+) +(.+) *$/;
+			const keyOnlyMatcher  = /^\/\/ *@([^@ ]+) *$/;
+			for (let line of lines) {
+				// Get & validate line
+				line = line.trim();
+				if (line.match(edgeMatcher)) {continue;};
+				if (!line.match(keyValueMatcher) && !line.match(keyOnlyMatcher)) {continue;};
+
+				// Get key-value
+				const match = line.match(keyValueMatcher) ? line.match(keyValueMatcher) : line.match(keyOnlyMatcher);
+				const key = match[1];
+				const value = match[2] ? match[2] : true;
+
+				// Attach to metaData object
+				if (!metaData[key]) {
+					metaData[key] = value;
+				} else {
+					if (metaData[key] instanceof Array) {
+						metaData[key].push(value);
+					} else {
+						metaData[key] = [metaData[key], value];
+					}
+				}
+			}
+			return metaData;
+		}
+
+		// Request latest script meta text from greasyfork
+		// You'll get metaText string as the first argument in your callback function
+		GFU.requestMetaText = function(scriptID, callback, args=[]) {
+			if (!scriptID) {return false;};
+			const url = 'https://greasyfork.org/scripts/{SID}/code/script.meta.js'.replace('{SID}', String(scriptID));
+			GM_xmlhttpRequest({
+				method: 'GET',
+				url: url,
+				responseType: 'text',
+				onload: function(e) {
+					callback && callback.apply(null, [e.responseText].concat(args));
+				}
+			})
+		}
+
+		// Request & parse latest script meta data from greasyfork
+		// You'll get metaData object as the first argument in your callback function
+		GFU.getMetaData = function(scriptID, callback, args=[]) {
+			if (!scriptID) {return false;};
+			GFU.requestMetaText(scriptID, function(metaText) {
+				const metaData = GFU.parseMetaData(metaText);
+				callback && callback.apply(null, [metaData].concat(args));
+			})
+		}
+
+		// Compare two version texts(v1, v2), returns true if v1 > v2
+		// Returns null while version text contains Non-demical text period(s)
+		GFU.versionNewer = function(v1, v2) {
+			v1 = v1.trim().split('.');
+			v2 = v2.trim().split('.');
+
+			for (let i = 0; i < Math.min(v1.length, v2.length); i++) {
+				v1[i] = Number(v1[i]);
+				v2[i] = Number(v2[i]);
+				if (!v1[i] || !v2[i]) {return null;};
+				if (v1[i] !== v2[i]) {return v1[i] > v2[i];};
+			}
+
+			return v1.length > v2.length;
+		}
+
+		// Check if there's new version of the script on GreasyFork using scriptID, current version text
+		// You'll get metaData object as the first argument in your callback function
+		GFU.checkUpdate = function(scriptID, curver, callback, args=[]) {
+			if (!scriptID) {return false;};
+			GFU.getMetaData(scriptID, function(metaData) {
+				if (GFU.versionNewer(metaData.version, curver)) {
+					callback && callback.apply(null, [metaData].concat(args));
+				}
+			})
+		}
+
+		// Check & Install update automatically
+		GFU.update = function(scriptID, curver) {
+			GFU.checkUpdate(scriptID, curver, function() {
+				const url = 'https://greasyfork.org/scripts/{SID}/code/script.user.js'.replace('{SID}', String(scriptID));
+				location.href = url;
+			})
+		}
+	}
+})();
